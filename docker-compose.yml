@@ -1,0 +1,106 @@
+services:
+  # Service 1: Base de données PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: datapipeline
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d datapipeline"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - pipeline_network
+
+  # Service 2: MLflow Tracking Server
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.10.0
+    container_name: mlflow_tracking
+    restart: unless-stopped
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:///mlflow.db
+      --default-artifact-root /mlflow/artifacts
+    ports:
+      - "5001:5000"
+    volumes:
+      - mlflow_data:/mlflow
+    networks:
+      - pipeline_network
+
+  # Service 3: ETL & Training Pipeline
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pipeline_etl
+    command: python pipeline.py
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: datapipeline
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    volumes:
+      - ./data:/app/data
+      - ./pipeline.py:/app/pipeline.py
+      - model_artifacts:/app/models
+    depends_on:
+      db:
+        condition: service_healthy
+      mlflow:
+        condition: service_started
+    networks:
+      - pipeline_network
+
+  # Service 4: API FastAPI
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api_service
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+    working_dir: /app/api
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: datapipeline
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MODEL_PATH: /app/models/iris_model.joblib
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api:/app/api
+      - model_artifacts:/app/models:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      pipeline:
+        condition: service_completed_successfully
+    networks:
+      - pipeline_network
+
+volumes:
+  postgres_data:
+    driver: local
+  mlflow_data:
+    driver: local
+  model_artifacts:
+    driver: local
+
+networks:
+  pipeline_network:
+    driver: bridge
