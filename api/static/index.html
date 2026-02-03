@@ -1,38 +1,124 @@
 <!doctype html>
 <html lang="fr">
+  <!--
+================================================================================
+                    INTERFACE WEB - IRIS PREDICTION
+================================================================================
+
+DESCRIPTION:
+    Cette page web est l'interface utilisateur du projet. Elle permet de faire
+    des prédictions en interagissant avec l'API FastAPI de manière visuelle.
+
+ARCHITECTURE:
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                        NAVIGATEUR                                │
+    │  ┌──────────────────────────────────────────────────────────┐   │
+    │  │                    index.html                             │   │
+    │  │  ┌────────────┐              ┌────────────────────────┐  │   │
+    │  │  │   INPUT    │  ──fetch──▶  │  API /predict (JSON)   │  │   │
+    │  │  │   CARD     │  ◀─────────  │  {"predicted": 5.08}   │  │   │
+    │  │  └────────────┘              └────────────────────────┘  │   │
+    │  │        │                                │                 │   │
+    │  │        ▼                                ▼                 │   │
+    │  │  ┌────────────┐              ┌────────────────────────┐  │   │
+    │  │  │  RESULT    │              │     Affichage          │  │   │
+    │  │  │   CARD     │  ◀───────────│     animé              │  │   │
+    │  │  └────────────┘              └────────────────────────┘  │   │
+    │  └──────────────────────────────────────────────────────────┘   │
+    └─────────────────────────────────────────────────────────────────┘
+
+STRUCTURE DU FICHIER:
+    1. HEAD        : Métadonnées, fonts, styles CSS
+    2. BODY        : Structure HTML de la page
+    3. SCRIPT      : Logique JavaScript (interactions, API calls)
+
+DESIGN:
+    - Dark mode avec thème violet/cyan
+    - Animations CSS (particules, hover effects, transitions)
+    - Design responsive (mobile-friendly)
+    - Glassmorphism (effet de verre flou)
+
+AUTEUR: Projet Data Pipeline - Epitech 2025-2026
+================================================================================
+-->
   <head>
+    <!-- ================================================================
+            MÉTADONNÉES
+    ================================================================ -->
+
+    <!-- Encodage des caractères (supporte les accents français) -->
     <meta charset="UTF-8" />
+
+    <!-- Configuration du viewport pour le responsive design -->
+    <!-- width=device-width : La largeur s'adapte à l'écran -->
+    <!-- initial-scale=1.0 : Pas de zoom initial -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Titre affiché dans l'onglet du navigateur -->
     <title>🌸 Iris Prediction - ML API</title>
+
+    <!-- ================================================================
+            FONTS (Google Fonts)
+    ================================================================ -->
+    <!-- Police Inter : Moderne, lisible, avec plusieurs graisses -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- ================================================================
+            STYLES CSS
+    ================================================================ -->
     <style>
+      /* ================================================================
+            VARIABLES CSS (Custom Properties)
+         ================================================================
+         Ces variables définissent la palette de couleurs et les valeurs
+         réutilisables dans tout le CSS. Modifier ici change tout le thème.
+      */
       :root {
-        --primary: #7c3aed;
-        --primary-light: #a78bfa;
-        --primary-dark: #5b21b6;
-        --accent: #06b6d4;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --error: #ef4444;
-        --bg-dark: #0f0f23;
-        --bg-card: #1a1a2e;
-        --bg-card-hover: #25253d;
-        --text-primary: #f8fafc;
-        --text-secondary: #94a3b8;
-        --border: rgba(255, 255, 255, 0.1);
-        --glow: rgba(124, 58, 237, 0.4);
+        /* Couleurs principales */
+        --primary: #7c3aed; /* Violet - couleur principale */
+        --primary-light: #a78bfa; /* Violet clair - textes/accents */
+        --primary-dark: #5b21b6; /* Violet foncé - hover states */
+        --accent: #06b6d4; /* Cyan - couleur secondaire */
+
+        /* Couleurs de statut */
+        --success: #10b981; /* Vert - succès */
+        --warning: #f59e0b; /* Orange - avertissement */
+        --error: #ef4444; /* Rouge - erreur */
+
+        /* Couleurs d'arrière-plan */
+        --bg-dark: #0f0f23; /* Fond principal (très sombre) */
+        --bg-card: #1a1a2e; /* Fond des cartes */
+        --bg-card-hover: #25253d; /* Fond des cartes au hover */
+
+        /* Couleurs de texte */
+        --text-primary: #f8fafc; /* Texte principal (blanc cassé) */
+        --text-secondary: #94a3b8; /* Texte secondaire (gris) */
+
+        /* Bordures et effets */
+        --border: rgba(255, 255, 255, 0.1); /* Bordure semi-transparente */
+        --glow: rgba(124, 58, 237, 0.4); /* Effet de lueur violet */
       }
 
+      /* ================================================================
+            RESET CSS
+         ================================================================
+         Supprime les styles par défaut du navigateur pour partir d'une
+         base propre et cohérente entre tous les navigateurs.
+      */
       * {
         margin: 0;
         padding: 0;
-        box-sizing: border-box;
+        box-sizing: border-box; /* Inclut padding/border dans la taille */
       }
 
+      /* ================================================================
+            STYLES GLOBAUX DU BODY
+         ================================================================ */
       body {
+        /* Police de caractères avec fallbacks */
         font-family:
           "Inter",
           -apple-system,
@@ -41,27 +127,35 @@
         background: var(--bg-dark);
         color: var(--text-primary);
         min-height: 100vh;
-        overflow-x: hidden;
+        overflow-x: hidden; /* Évite le scroll horizontal */
       }
 
-      /* Animated Background */
+      /* ================================================================
+            ANIMATION D'ARRIÈRE-PLAN
+         ================================================================
+         Crée un effet de dégradé animé avec des cercles colorés flous
+         qui se déplacent lentement pour donner vie à l'arrière-plan.
+      */
       .bg-animation {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: -1;
+        z-index: -1; /* Derrière tout le contenu */
         overflow: hidden;
       }
 
+      /* Le pseudo-élément ::before permet d'ajouter le dégradé */
       .bg-animation::before {
         content: "";
         position: absolute;
+        /* Déborde de la zone visible pour l'animation */
         top: -50%;
         left: -50%;
         width: 200%;
         height: 200%;
+        /* Multiple dégradés radiaux superposés */
         background:
           radial-gradient(
             circle at 20% 80%,
@@ -78,9 +172,11 @@
             rgba(167, 139, 250, 0.08) 0%,
             transparent 40%
           );
+        /* Animation de flottement */
         animation: bgFloat 20s ease-in-out infinite;
       }
 
+      /* Keyframes de l'animation de fond */
       @keyframes bgFloat {
         0%,
         100% {
@@ -94,7 +190,12 @@
         }
       }
 
-      /* Floating particles */
+      /* ================================================================
+            PARTICULES FLOTTANTES
+         ================================================================
+         Petits points lumineux qui montent lentement à l'écran
+         pour créer un effet de magie/technologie.
+      */
       .particles {
         position: fixed;
         top: 0;
@@ -102,7 +203,7 @@
         width: 100%;
         height: 100%;
         z-index: -1;
-        pointer-events: none;
+        pointer-events: none; /* Les clics passent à travers */
       }
 
       .particle {
@@ -115,6 +216,7 @@
         animation: float 15s infinite;
       }
 
+      /* Animation de montée des particules */
       @keyframes float {
         0%,
         100% {
@@ -133,21 +235,28 @@
         }
       }
 
-      /* Container */
+      /* ================================================================
+            CONTAINER PRINCIPAL
+         ================================================================
+         Centre et limite la largeur du contenu pour la lisibilité.
+      */
       .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
+        max-width: 1200px; /* Largeur max sur grands écrans */
+        margin: 0 auto; /* Centre horizontalement */
+        padding: 2rem; /* Espacement interne */
         position: relative;
       }
 
-      /* Header */
+      /* ================================================================
+            EN-TÊTE (HEADER)
+         ================================================================ */
       header {
         text-align: center;
         padding: 3rem 0;
         position: relative;
       }
 
+      /* Logo avec icône et titre */
       .logo {
         display: inline-flex;
         align-items: center;
@@ -160,6 +269,7 @@
         animation: pulse 2s ease-in-out infinite;
       }
 
+      /* Animation de pulsation du logo */
       @keyframes pulse {
         0%,
         100% {
@@ -170,9 +280,11 @@
         }
       }
 
+      /* Titre principal avec dégradé de couleur */
       h1 {
         font-size: 2.5rem;
         font-weight: 700;
+        /* Texte avec dégradé de couleur */
         background: linear-gradient(
           135deg,
           var(--primary-light),
@@ -189,7 +301,11 @@
         margin-top: 0.5rem;
       }
 
-      /* Status Badge */
+      /* ================================================================
+            BADGE DE STATUT
+         ================================================================
+         Affiche l'état de l'API (prêt, hors ligne, etc.)
+      */
       .status-badge {
         display: inline-flex;
         align-items: center;
@@ -203,6 +319,7 @@
         margin-top: 1.5rem;
       }
 
+      /* Point clignotant indiquant l'état */
       .status-dot {
         width: 8px;
         height: 8px;
@@ -221,21 +338,30 @@
         }
       }
 
-      /* Main Grid */
+      /* ================================================================
+            GRILLE PRINCIPALE
+         ================================================================
+         Disposition des 2 cartes (entrée et résultat) côte à côte.
+      */
       .main-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr; /* 2 colonnes égales */
         gap: 2rem;
         margin-top: 2rem;
       }
 
+      /* Sur mobile, les cartes s'empilent verticalement */
       @media (max-width: 900px) {
         .main-grid {
           grid-template-columns: 1fr;
         }
       }
 
-      /* Cards */
+      /* ================================================================
+            CARTES (CARDS)
+         ================================================================
+         Style commun des cartes avec effet de survol.
+      */
       .card {
         background: var(--bg-card);
         border: 1px solid var(--border);
@@ -246,6 +372,7 @@
         transition: all 0.3s ease;
       }
 
+      /* Ligne de couleur en haut de la carte (invisible par défaut) */
       .card::before {
         content: "";
         position: absolute;
@@ -258,6 +385,7 @@
         transition: opacity 0.3s ease;
       }
 
+      /* Effet de survol */
       .card:hover {
         transform: translateY(-5px);
         border-color: var(--primary);
@@ -270,6 +398,7 @@
         opacity: 1;
       }
 
+      /* Titre des cartes */
       .card-title {
         display: flex;
         align-items: center;
@@ -283,7 +412,9 @@
         font-size: 1.5rem;
       }
 
-      /* Input Section */
+      /* ================================================================
+            CHAMPS DE SAISIE
+         ================================================================ */
       .input-group {
         margin-bottom: 1.5rem;
       }
@@ -300,6 +431,7 @@
         position: relative;
       }
 
+      /* Style du champ de saisie numérique */
       .input-field {
         width: 100%;
         padding: 1rem 1.25rem;
@@ -312,6 +444,7 @@
         transition: all 0.3s ease;
       }
 
+      /* État focus du champ */
       .input-field:focus {
         outline: none;
         border-color: var(--primary);
@@ -323,6 +456,7 @@
         opacity: 0.5;
       }
 
+      /* Unité affichée à droite du champ */
       .input-unit {
         position: absolute;
         right: 1rem;
@@ -332,7 +466,9 @@
         font-size: 0.9rem;
       }
 
-      /* Slider */
+      /* ================================================================
+            SLIDER (CURSEUR)
+         ================================================================ */
       .slider-container {
         margin-top: 1rem;
       }
@@ -347,6 +483,7 @@
         outline: none;
       }
 
+      /* Bouton du slider (le curseur déplaçable) */
       .slider::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
@@ -363,6 +500,7 @@
         transform: scale(1.2);
       }
 
+      /* Labels min/max sous le slider */
       .slider-labels {
         display: flex;
         justify-content: space-between;
@@ -371,7 +509,9 @@
         color: var(--text-secondary);
       }
 
-      /* Button */
+      /* ================================================================
+            BOUTON DE PRÉDICTION
+         ================================================================ */
       .predict-btn {
         width: 100%;
         padding: 1rem;
@@ -392,6 +532,7 @@
         overflow: hidden;
       }
 
+      /* Effet de brillance au hover */
       .predict-btn::before {
         content: "";
         position: absolute;
@@ -426,13 +567,16 @@
         cursor: not-allowed;
       }
 
-      /* Result Card */
+      /* ================================================================
+            CARTE DE RÉSULTAT
+         ================================================================ */
       .result-card {
         min-height: 300px;
         display: flex;
         flex-direction: column;
       }
 
+      /* Placeholder (avant la première prédiction) */
       .result-placeholder {
         flex: 1;
         display: flex;
@@ -449,16 +593,19 @@
         opacity: 0.5;
       }
 
+      /* Contenu du résultat (caché par défaut) */
       .result-content {
         display: none;
         flex: 1;
       }
 
+      /* Classe ajoutée par JS pour afficher le résultat */
       .result-content.show {
         display: block;
         animation: fadeIn 0.5s ease;
       }
 
+      /* Animation d'apparition */
       @keyframes fadeIn {
         from {
           opacity: 0;
@@ -470,6 +617,7 @@
         }
       }
 
+      /* Affichage de la valeur prédite */
       .result-value {
         text-align: center;
         padding: 2rem;
@@ -488,6 +636,7 @@
         margin-bottom: 0.5rem;
       }
 
+      /* Le grand nombre de la prédiction */
       .result-number {
         font-size: 3.5rem;
         font-weight: 700;
@@ -507,7 +656,7 @@
         margin-left: 0.25rem;
       }
 
-      /* Details */
+      /* Détails sous le résultat (entrée, modèle) */
       .result-details {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -533,7 +682,9 @@
         color: var(--accent);
       }
 
-      /* Info Section */
+      /* ================================================================
+            SECTION D'INFORMATIONS
+         ================================================================ */
       .info-section {
         margin-top: 2rem;
       }
@@ -585,7 +736,9 @@
         line-height: 1.6;
       }
 
-      /* Footer */
+      /* ================================================================
+            PIED DE PAGE (FOOTER)
+         ================================================================ */
       footer {
         text-align: center;
         padding: 2rem;
@@ -602,7 +755,9 @@
         text-decoration: underline;
       }
 
-      /* Loading Animation */
+      /* ================================================================
+            ANIMATION DE CHARGEMENT
+         ================================================================ */
       .loading {
         display: none;
         text-align: center;
@@ -613,6 +768,7 @@
         display: block;
       }
 
+      /* Spinner rotatif */
       .spinner {
         width: 50px;
         height: 50px;
@@ -629,7 +785,9 @@
         }
       }
 
-      /* Error */
+      /* ================================================================
+            MESSAGE D'ERREUR
+         ================================================================ */
       .error-message {
         background: rgba(239, 68, 68, 0.1);
         border: 1px solid rgba(239, 68, 68, 0.3);
@@ -645,6 +803,7 @@
         animation: shake 0.5s ease;
       }
 
+      /* Animation de secousse pour les erreurs */
       @keyframes shake {
         0%,
         100% {
@@ -659,37 +818,62 @@
       }
     </style>
   </head>
+
   <body>
+    <!-- ================================================================
+            ÉLÉMENTS D'ARRIÈRE-PLAN
+    ================================================================ -->
+
+    <!-- Conteneur pour l'animation de fond (dégradés animés) -->
     <div class="bg-animation"></div>
 
-    <!-- Floating Particles -->
+    <!-- Conteneur pour les particules flottantes (ajoutées par JS) -->
     <div class="particles" id="particles"></div>
 
+    <!-- ================================================================
+            CONTENU PRINCIPAL
+    ================================================================ -->
     <div class="container">
+      <!-- ==============================================================
+              EN-TÊTE
+      ============================================================== -->
       <header>
+        <!-- Logo avec emoji et titre -->
         <div class="logo">
           <span class="logo-icon">🌸</span>
           <h1>Iris Prediction</h1>
         </div>
+
+        <!-- Sous-titre explicatif -->
         <p class="subtitle">
           Prédiction de la longueur des sépales par Machine Learning
         </p>
+
+        <!-- Badge de statut de l'API (mis à jour par JS) -->
         <div class="status-badge" id="statusBadge">
           <span class="status-dot"></span>
           <span id="statusText">Vérification...</span>
         </div>
       </header>
 
+      <!-- ==============================================================
+              GRILLE PRINCIPALE (2 CARTES)
+      ============================================================== -->
       <div class="main-grid">
-        <!-- Input Card -->
+        <!-- ============================================================
+                CARTE D'ENTRÉE (GAUCHE)
+        ============================================================ -->
         <div class="card">
           <div class="card-title">
             <span class="card-icon">📊</span>
             Données d'entrée
           </div>
 
+          <!-- Groupe de saisie : champ numérique + slider -->
           <div class="input-group">
             <label class="input-label">Largeur des sépales (sepal_width)</label>
+
+            <!-- Champ numérique -->
             <div class="input-wrapper">
               <input
                 type="number"
@@ -704,6 +888,7 @@
               <span class="input-unit">cm</span>
             </div>
 
+            <!-- Slider alternatif -->
             <div class="slider-container">
               <input
                 type="range"
@@ -721,20 +906,25 @@
             </div>
           </div>
 
+          <!-- Bouton de prédiction -->
           <button class="predict-btn" id="predictBtn" onclick="predict()">
             🔮 Prédire la longueur
           </button>
 
+          <!-- Zone d'erreur (cachée par défaut) -->
           <div class="error-message" id="errorMessage"></div>
         </div>
 
-        <!-- Result Card -->
+        <!-- ============================================================
+                CARTE DE RÉSULTAT (DROITE)
+        ============================================================ -->
         <div class="card result-card">
           <div class="card-title">
             <span class="card-icon">🎯</span>
             Résultat de la prédiction
           </div>
 
+          <!-- Placeholder (affiché avant la première prédiction) -->
           <div class="result-placeholder" id="placeholder">
             <div class="placeholder-icon">🌿</div>
             <p>
@@ -743,11 +933,13 @@
             </p>
           </div>
 
+          <!-- Animation de chargement (affichée pendant la requête) -->
           <div class="loading" id="loading">
             <div class="spinner"></div>
             <p>Analyse en cours...</p>
           </div>
 
+          <!-- Résultat de la prédiction (affiché après la requête) -->
           <div class="result-content" id="resultContent">
             <div class="result-value">
               <div class="result-label">Longueur des sépales prédite</div>
@@ -755,6 +947,7 @@
               <span class="result-unit">cm</span>
             </div>
 
+            <!-- Détails supplémentaires -->
             <div class="result-details">
               <div class="detail-item">
                 <div class="detail-label">Entrée</div>
@@ -769,9 +962,12 @@
         </div>
       </div>
 
-      <!-- Info Section -->
+      <!-- ==============================================================
+              SECTION D'INFORMATIONS
+      ============================================================== -->
       <div class="info-section">
         <div class="info-cards">
+          <!-- Carte info 1 : Dataset Iris -->
           <div class="info-card">
             <div class="info-card-header">
               <div class="info-card-icon">🌺</div>
@@ -783,6 +979,7 @@
             </p>
           </div>
 
+          <!-- Carte info 2 : Algorithme RandomForest -->
           <div class="info-card">
             <div class="info-card-header">
               <div class="info-card-icon">🤖</div>
@@ -794,6 +991,7 @@
             </p>
           </div>
 
+          <!-- Carte info 3 : MLflow Tracking -->
           <div class="info-card">
             <div class="info-card-header">
               <div class="info-card-icon">📈</div>
@@ -807,6 +1005,9 @@
         </div>
       </div>
 
+      <!-- ==============================================================
+              PIED DE PAGE
+      ============================================================== -->
       <footer>
         <p>Projet Data Pipeline - Epitech 2025-2026</p>
         <p style="margin-top: 0.5rem">
@@ -816,71 +1017,105 @@
       </footer>
     </div>
 
+    <!-- ================================================================
+            JAVASCRIPT
+    ================================================================ -->
     <script>
-      // Sync slider and input
+      // ================================================================
+      //    SYNCHRONISATION SLIDER ↔ INPUT
+      // ================================================================
+      // Les deux éléments (champ texte et slider) sont liés :
+      // Modifier l'un met à jour l'autre automatiquement.
+
       const input = document.getElementById("sepalWidth");
       const slider = document.getElementById("sepalWidthSlider");
 
+      // Quand on tape dans le champ, mettre à jour le slider
       input.addEventListener("input", () => {
         slider.value = input.value;
       });
 
+      // Quand on déplace le slider, mettre à jour le champ
       slider.addEventListener("input", () => {
         input.value = slider.value;
       });
 
-      // Generate floating particles
+      // ================================================================
+      //    GÉNÉRATION DES PARTICULES FLOTTANTES
+      // ================================================================
+      // Crée 20 particules avec des positions et délais aléatoires
+
       function createParticles() {
         const container = document.getElementById("particles");
         for (let i = 0; i < 20; i++) {
           const particle = document.createElement("div");
           particle.className = "particle";
+          // Position horizontale aléatoire
           particle.style.left = Math.random() * 100 + "%";
+          // Délai de départ aléatoire (0-15s)
           particle.style.animationDelay = Math.random() * 15 + "s";
+          // Durée d'animation variable (15-25s)
           particle.style.animationDuration = 15 + Math.random() * 10 + "s";
           container.appendChild(particle);
         }
       }
+      // Créer les particules au chargement
       createParticles();
 
-      // Check API health
+      // ================================================================
+      //    VÉRIFICATION DE L'ÉTAT DE L'API
+      // ================================================================
+      // Appelle /health au chargement pour vérifier si l'API fonctionne
+
       async function checkHealth() {
         const badge = document.getElementById("statusBadge");
         const text = document.getElementById("statusText");
 
         try {
+          // Appel à l'endpoint /health de l'API
           const response = await fetch("/health");
           const data = await response.json();
 
           if (data.model_loaded) {
+            // ✅ API et modèle prêts
             text.textContent = "API & Modèle prêts";
             badge.style.borderColor = "rgba(16, 185, 129, 0.3)";
             badge.style.background = "rgba(16, 185, 129, 0.1)";
           } else {
+            // ⚠️ Modèle non chargé
             text.textContent = "Modèle non chargé";
             badge.style.borderColor = "rgba(245, 158, 11, 0.3)";
             badge.style.background = "rgba(245, 158, 11, 0.1)";
             badge.style.color = "#f59e0b";
           }
         } catch (error) {
+          // ❌ API hors ligne
           text.textContent = "API hors ligne";
           badge.style.borderColor = "rgba(239, 68, 68, 0.3)";
           badge.style.background = "rgba(239, 68, 68, 0.1)";
           badge.style.color = "#ef4444";
         }
       }
+      // Vérifier l'état au chargement de la page
       checkHealth();
 
-      // Prediction function
+      // ================================================================
+      //    FONCTION DE PRÉDICTION
+      // ================================================================
+      // Envoie la valeur à l'API et affiche le résultat
+
       async function predict() {
+        // Récupérer la valeur entrée
         const sepalWidth = parseFloat(input.value);
+
+        // Récupérer les éléments du DOM
         const btn = document.getElementById("predictBtn");
         const placeholder = document.getElementById("placeholder");
         const loading = document.getElementById("loading");
         const resultContent = document.getElementById("resultContent");
         const errorMessage = document.getElementById("errorMessage");
 
-        // Validate input
+        // --- Validation de l'entrée ---
         if (isNaN(sepalWidth) || sepalWidth < 2 || sepalWidth > 4.5) {
           errorMessage.textContent =
             "⚠️ Veuillez entrer une valeur entre 2 et 4.5 cm";
@@ -888,15 +1123,17 @@
           return;
         }
 
+        // Cacher les erreurs précédentes
         errorMessage.classList.remove("show");
 
-        // Show loading
+        // --- Afficher l'animation de chargement ---
         btn.disabled = true;
         placeholder.style.display = "none";
         resultContent.classList.remove("show");
         loading.classList.add("show");
 
         try {
+          // --- Appel à l'API /predict ---
           const response = await fetch("/predict", {
             method: "POST",
             headers: {
@@ -905,13 +1142,15 @@
             body: JSON.stringify({ sepal_width: sepalWidth }),
           });
 
+          // Vérifier si la requête a réussi
           if (!response.ok) {
             throw new Error("Erreur lors de la prédiction");
           }
 
+          // Parser la réponse JSON
           const data = await response.json();
 
-          // Show result
+          // --- Afficher le résultat ---
           loading.classList.remove("show");
           document.getElementById("predictedValue").textContent =
             data.predicted_sepal_length.toFixed(2);
@@ -919,16 +1158,22 @@
             data.sepal_width + " cm";
           resultContent.classList.add("show");
         } catch (error) {
+          // --- Gestion des erreurs ---
           loading.classList.remove("show");
           placeholder.style.display = "flex";
           errorMessage.textContent = "❌ " + error.message;
           errorMessage.classList.add("show");
         } finally {
+          // Réactiver le bouton
           btn.disabled = false;
         }
       }
 
-      // Allow Enter key to trigger prediction
+      // ================================================================
+      //    RACCOURCI CLAVIER : ENTRÉE POUR PRÉDIRE
+      // ================================================================
+      // Permet de lancer la prédiction en appuyant sur Entrée
+
       input.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
           predict();
