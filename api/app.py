@@ -3,10 +3,14 @@ API FastAPI - Service de prédiction
 ====================================
 Expose une route /predict pour prédire sepal_length à partir de sepal_width
 Charge le modèle depuis le volume partagé (sauvegardé par le pipeline)
+Inclut une interface web pour interagir avec l'API
 """
 
 import os
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import joblib
 import numpy as np
@@ -14,6 +18,7 @@ import numpy as np
 # Configuration
 MODEL_PATH = os.getenv("MODEL_PATH", "/app/models/iris_model.joblib")
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000")
+STATIC_DIR = Path(__file__).parent / "static"
 
 # Initialisation FastAPI
 app = FastAPI(
@@ -21,6 +26,10 @@ app = FastAPI(
     description="API pour prédire la longueur des sépales (sepal_length) à partir de la largeur (sepal_width)",
     version="1.0.0"
 )
+
+# Montage des fichiers statiques
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 # Chargement du modèle au démarrage
 model = None
@@ -73,9 +82,12 @@ async def startup_event():
     load_model()
 
 
-@app.get("/", tags=["Health"])
+@app.get("/", tags=["Frontend"], include_in_schema=False)
 async def root():
-    """Page d'accueil de l'API"""
+    """Sert l'interface web principale"""
+    index_file = STATIC_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(str(index_file))
     return {
         "message": "Iris Prediction API",
         "docs": "/docs",

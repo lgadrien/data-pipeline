@@ -2,14 +2,28 @@
 
 Pipeline de données complet avec **4 services Docker** indépendants pour l'entraînement et le déploiement d'un modèle de Machine Learning sur le dataset Iris.
 
+![Interface Web](https://img.shields.io/badge/Frontend-Modern%20UI-7c3aed?style=for-the-badge)
+![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?style=for-the-badge&logo=fastapi)
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker)
+![MLflow](https://img.shields.io/badge/MLOps-MLflow-0194E2?style=for-the-badge&logo=mlflow)
+
 ## 📋 Description
 
-Ce projet implémente un pipeline ETL (Extract, Transform, Load) qui :
+Ce projet implémente un pipeline ETL (Extract, Transform, Load) complet qui :
 
 1. **Charge** les données Iris depuis un fichier CSV
 2. **Stocke** les données dans PostgreSQL
 3. **Entraîne** un modèle de régression (RandomForest) pour prédire la longueur des sépales
 4. **Expose** une API REST pour faire des prédictions
+5. **Propose** une interface web moderne pour interagir avec le modèle
+
+## ✨ Fonctionnalités
+
+- 🎨 **Interface Web Moderne** - Design dark mode avec animations et effets glassmorphism
+- 🔮 **Prédiction en temps réel** - API REST performante avec FastAPI
+- 📊 **Tracking MLOps** - Suivi des expériences avec MLflow
+- 🐘 **Stockage PostgreSQL** - Persistance des données
+- 🐳 **Entièrement Dockerisé** - Déploiement simple avec Docker Compose
 
 ## 🏗️ Architecture
 
@@ -20,7 +34,7 @@ Ce projet implémente un pipeline ETL (Extract, Transform, Load) qui :
 │                                                                  │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
 │  │  PostgreSQL  │    │    MLflow    │    │   FastAPI    │       │
-│  │    (db)      │    │   (mlflow)   │    │    (api)     │       │
+│  │    (db)      │    │   (mlflow)   │    │ (api + web)  │       │
 │  │  Port: 5432  │    │  Port: 5001  │    │  Port: 8000  │       │
 │  └──────────────┘    └──────────────┘    └──────────────┘       │
 │         ▲                   ▲                   ▲                │
@@ -46,9 +60,12 @@ datapipeline/
 ├── pipeline.py          # Script ETL + Training
 ├── README.md            # Ce fichier
 ├── api/
-│   └── app.py           # API FastAPI
-└── data/
-    └── iris.csv         # Dataset Iris
+│   ├── app.py           # API FastAPI
+│   └── static/
+│       └── index.html   # Interface web moderne
+├── data/
+│   └── iris.csv         # Dataset Iris
+└── documentation/       # Documentation du projet
 ```
 
 ## 🚀 Démarrage rapide
@@ -80,9 +97,44 @@ mlflow_tracking   ghcr.io/mlflow/mlflow:v2.10.0   Up                        0.0.
 postgres_db       postgres:15-alpine              Up (healthy)              0.0.0.0:5432->5432
 ```
 
+## 🌐 Interfaces Web
+
+| Service              | URL                        | Description                         |
+| -------------------- | -------------------------- | ----------------------------------- |
+| **🎯 Interface Web** | http://localhost:8000      | Interface de prédiction interactive |
+| **📄 API Swagger**   | http://localhost:8000/docs | Documentation interactive de l'API  |
+| **📊 MLflow UI**     | http://localhost:5001      | Suivi des expériences ML            |
+
+## 🎨 Interface Web
+
+L'application dispose d'une interface web moderne et élégante pour faire des prédictions :
+
+### Fonctionnalités de l'interface
+
+- 🎚️ **Slider interactif** - Ajustez facilement la valeur de sepal_width
+- 🔮 **Prédiction instantanée** - Résultats en temps réel
+- 📊 **Badge de statut** - Vérifie si l'API et le modèle sont prêts
+- 🌙 **Design Dark Mode** - Interface moderne avec effets visuels
+- ✨ **Animations fluides** - Particules, transitions, hover effects
+- 📱 **Responsive** - Compatible mobile et desktop
+
+### Comment l'utiliser
+
+1. Ouvrir http://localhost:8000 dans votre navigateur
+2. Ajuster la valeur de `sepal_width` avec le slider ou le champ texte
+3. Cliquer sur **"🔮 Prédire la longueur"**
+4. Le résultat s'affiche instantanément avec la longueur prédite
+
 ## 🔮 Faire une prédiction
 
-### Option 1 : Via curl (Terminal)
+### Option 1 : Via l'interface Web (Recommandé)
+
+1. Ouvrir http://localhost:8000 dans votre navigateur
+2. Entrer une valeur pour `sepal_width` (entre 2.0 et 4.5 cm)
+3. Cliquer sur **"Prédire la longueur"**
+4. Voir le résultat affiché avec une animation
+
+### Option 2 : Via curl (Terminal)
 
 ```bash
 curl -X POST http://localhost:8000/predict \
@@ -100,7 +152,7 @@ curl -X POST http://localhost:8000/predict \
 }
 ```
 
-### Option 2 : Via Python
+### Option 3 : Via Python
 
 ```python
 import requests
@@ -114,7 +166,7 @@ print(response.json())
 # {'sepal_width': 3.5, 'predicted_sepal_length': 5.0815, ...}
 ```
 
-### Option 3 : Via l'interface Swagger
+### Option 4 : Via l'interface Swagger
 
 1. Ouvrir http://localhost:8000/docs dans votre navigateur
 2. Cliquer sur **POST /predict**
@@ -122,21 +174,15 @@ print(response.json())
 4. Entrer une valeur pour `sepal_width` (ex: 3.5)
 5. Cliquer sur **Execute**
 
-## 🌐 Interfaces Web
-
-| Service         | URL                        | Description                        |
-| --------------- | -------------------------- | ---------------------------------- |
-| **API Swagger** | http://localhost:8000/docs | Documentation interactive de l'API |
-| **MLflow UI**   | http://localhost:5001      | Suivi des expériences ML           |
-
 ## 📊 Endpoints de l'API
 
-| Méthode | Endpoint      | Description                |
-| ------- | ------------- | -------------------------- |
-| `GET`   | `/`           | Page d'accueil             |
-| `GET`   | `/health`     | Statut de santé de l'API   |
-| `GET`   | `/model/info` | Informations sur le modèle |
-| `POST`  | `/predict`    | Faire une prédiction       |
+| Méthode | Endpoint      | Description                 |
+| ------- | ------------- | --------------------------- |
+| `GET`   | `/`           | Interface web de prédiction |
+| `GET`   | `/health`     | Statut de santé de l'API    |
+| `GET`   | `/model/info` | Informations sur le modèle  |
+| `POST`  | `/predict`    | Faire une prédiction        |
+| `GET`   | `/docs`       | Documentation Swagger       |
 
 ### Exemple de requête `/predict`
 
@@ -199,12 +245,32 @@ SELECT COUNT(*) FROM iris_data;
 
 ## 📈 Le modèle
 
-- **Type** : RandomForestRegressor
-- **Feature** : `sepal_width` (largeur des sépales)
-- **Target** : `sepal_length` (longueur des sépales)
-- **Métriques** :
-  - RMSE : ~0.85
-  - MAE : ~0.65
+| Caractéristique | Valeur                              |
+| --------------- | ----------------------------------- |
+| **Type**        | RandomForestRegressor               |
+| **Feature**     | sepal_width (largeur des sépales)   |
+| **Target**      | sepal_length (longueur des sépales) |
+| **Estimateurs** | 100 arbres                          |
+| **Max Depth**   | 5                                   |
+
+### Métriques
+
+| Métrique     | Valeur   |
+| ------------ | -------- |
+| **RMSE**     | ~0.85    |
+| **MAE**      | ~0.65    |
+| **R² Score** | Variable |
+
+## 🛠️ Technologies utilisées
+
+| Catégorie     | Technologies                      |
+| ------------- | --------------------------------- |
+| **Backend**   | Python, FastAPI, SQLAlchemy       |
+| **ML**        | Scikit-learn, RandomForest        |
+| **MLOps**     | MLflow                            |
+| **Database**  | PostgreSQL                        |
+| **Frontend**  | HTML5, CSS3, JavaScript (Vanilla) |
+| **Container** | Docker, Docker Compose            |
 
 ## 🐛 Dépannage
 
@@ -226,6 +292,16 @@ docker compose ps
 
 # Vérifier les logs de l'API
 docker compose logs api
+```
+
+### L'interface web ne s'affiche pas
+
+```bash
+# Vérifier que les fichiers statiques sont bien montés
+docker exec api_service ls -la /app/api/static/
+
+# Reconstruire l'image
+docker compose up -d --build api
 ```
 
 ### Réinitialiser complètement
