@@ -27,12 +27,26 @@ docker compose up -d
 ```
 1. PostgreSQL      → Base de données
 2. Preprocessing   → Normalise les données du CSV
-3. Model Training  → Entraîne RandomForest (sepal_width → sepal_length)
+3. Model Training  → Entraîne RandomForest + Polynomial Features (degree=3) (sepal_width → sepal_length)
 4. API Flask       → Sert les prédictions
 5. Frontend Nginx  → Interface utilisateur
 ```
 
 ## Endpoints API
+
+### GET /health
+
+Vérifie l'état de l'API et du modèle.
+
+```bash
+curl http://localhost:8000/health
+```
+
+Réponse :
+
+```json
+{ "status": "healthy" }
+```
 
 ### POST /predict
 
@@ -62,11 +76,15 @@ Réponse :
 
 ```json
 {
-  "r2_score": -0.6123,
-  "rmse": 1.048,
-  "mae": 0.7308,
-  "model_type": "RandomForestRegressor",
-  "features": ["sepal_width"],
+  "r2_score": -0.6088,
+  "rmse": 1.0468,
+  "mae": 0.7268,
+  "train_samples": 119,
+  "test_samples": 30,
+  "model_type": "Pipeline(PolynomialFeatures + RandomForest)",
+  "polynomial_degree": 3,
+  "n_estimators": 200,
+  "input_feature": "sepal_width",
   "target": "sepal_length"
 }
 ```
