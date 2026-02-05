@@ -4,4 +4,4 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
-df = pd.read_csv("iris.csv")
+df = pd.read_csv("data/iris.csv")
