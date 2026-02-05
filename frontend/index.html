@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iris Predictor</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 450px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 1.8rem;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 0.9rem;
+      }
+
+      .input-group {
+        margin-bottom: 25px;
+      }
+
+      .label-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      label {
+        color: #444;
+        font-weight: 500;
+      }
+
+      .value-display {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: #e0e0e0;
+        outline: none;
+        -webkit-appearance: none;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+        transition: transform 0.2s;
+      }
+
+      input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+      }
+
+      .range-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 5px;
+        font-size: 0.75rem;
+        color: #999;
+      }
+
+      button {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        margin-top: 10px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+      }
+
+      button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .result {
+        margin-top: 30px;
+        padding: 20px;
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        border-radius: 12px;
+        text-align: center;
+        display: none;
+      }
+
+      .result.show {
+        display: block;
+        animation: fadeIn 0.5s ease;
+      }
+
+      .result-label {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+      }
+
+      .result-value {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 700;
+      }
+
+      .error {
+        background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .info {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🌸 Iris Predictor</h1>
+      <p class="subtitle">Prédiction de la longueur du sépale</p>
+
+      <div class="input-group">
+        <div class="label-row">
+          <label>Largeur du sépale</label>
+          <span class="value-display" id="sepal_width_val">3.0 cm</span>
+        </div>
+        <input
+          type="range"
+          id="sepal_width"
+          min="2.0"
+          max="4.5"
+          step="0.1"
+          value="3.0"
+          oninput="updateValue('sepal_width')"
+        />
+        <div class="range-labels"><span>2.0 cm</span><span>4.5 cm</span></div>
+      </div>
+
+      <div class="input-group">
+        <div class="label-row">
+          <label>Longueur du pétale</label>
+          <span class="value-display" id="petal_length_val">3.5 cm</span>
+        </div>
+        <input
+          type="range"
+          id="petal_length"
+          min="1.0"
+          max="7.0"
+          step="0.1"
+          value="3.5"
+          oninput="updateValue('petal_length')"
+        />
+        <div class="range-labels"><span>1.0 cm</span><span>7.0 cm</span></div>
+      </div>
+
+      <div class="input-group">
+        <div class="label-row">
+          <label>Largeur du pétale</label>
+          <span class="value-display" id="petal_width_val">1.0 cm</span>
+        </div>
+        <input
+          type="range"
+          id="petal_width"
+          min="0.1"
+          max="2.5"
+          step="0.1"
+          value="1.0"
+          oninput="updateValue('petal_width')"
+        />
+        <div class="range-labels"><span>0.1 cm</span><span>2.5 cm</span></div>
+      </div>
+
+      <button id="predictBtn" onclick="predict()">
+        Prédire la longueur du sépale
+      </button>
+
+      <div id="result" class="result">
+        <div class="result-label">Longueur du sépale prédite</div>
+        <div class="result-value" id="resultValue">--</div>
+      </div>
+
+      <div class="info">
+        <strong>ℹ️</strong> Modèle Random Forest entraîné sur le dataset Iris
+        (R² = 0.89)
+      </div>
+    </div>
+
+    <script>
+      function updateValue(id) {
+        const value = document.getElementById(id).value;
+        document.getElementById(id + "_val").textContent = value + " cm";
+      }
+
+      async function predict() {
+        const btn = document.getElementById("predictBtn");
+        const result = document.getElementById("result");
+        const resultValue = document.getElementById("resultValue");
+
+        const sepal_width = parseFloat(
+          document.getElementById("sepal_width").value,
+        );
+        const petal_length = parseFloat(
+          document.getElementById("petal_length").value,
+        );
+        const petal_width = parseFloat(
+          document.getElementById("petal_width").value,
+        );
+
+        btn.disabled = true;
+        btn.textContent = "Calcul en cours...";
+
+        try {
+          const response = await fetch("http://localhost:8000/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sepal_width, petal_length, petal_width }),
+          });
+
+          if (!response.ok) throw new Error("Erreur API");
+
+          const data = await response.json();
+          result.className = "result show";
+          resultValue.textContent = data.predicted_sepal_length + " cm";
+        } catch (error) {
+          result.className = "result show error";
+          resultValue.textContent = "Erreur de connexion";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Prédire la longueur du sépale";
+        }
+      }
+    </script>
+  </body>
+</html>

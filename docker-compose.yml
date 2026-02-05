@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  # Service Base de données
+  db:
+    image: postgres:15
+    container_name: iris_db
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Service Prétraitement
+  preprocessing:
+    build: ./1datatreatement
+    container_name: iris_preprocessing
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./data:/data
+
+  # Service Model Training
+  model_training:
+    build: ./2modeltraining
+    container_name: iris_model_training
+    env_file:
+      - .env
+    depends_on:
+      preprocessing:
+        condition: service_completed_successfully
+    volumes:
+      - models_data:/models
+
+  # Service API Flask
+  api:
+    build: ./3api
+    container_name: iris_api
+    ports:
+      - "8000:5000"
+    depends_on:
+      model_training:
+        condition: service_completed_successfully
+    volumes:
+      - models_data:/models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
+  models_data:
