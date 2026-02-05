@@ -1,7 +1,4 @@
-version: "3.8"
-
 services:
-  # Service Base de données
   db:
     image: postgres:15
     container_name: iris_db
@@ -15,7 +12,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Service Prétraitement
   preprocessing:
     build: ./1datatreatement
     container_name: iris_preprocessing
@@ -27,7 +23,6 @@ services:
     volumes:
       - ./data:/data
 
-  # Service Model Training
   model_training:
     build: ./2modeltraining
     container_name: iris_model_training
@@ -39,7 +34,6 @@ services:
     volumes:
       - models_data:/models
 
-  # Service API Flask
   api:
     build: ./3api
     container_name: iris_api
@@ -50,11 +44,14 @@ services:
         condition: service_completed_successfully
     volumes:
       - models_data:/models
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+
+  frontend:
+    build: ./frontend
+    container_name: iris_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - api
 
 volumes:
   postgres_data:
